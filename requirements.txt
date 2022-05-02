@@ -1,0 +1,6 @@
+pyqt5
+pyinstaller
+opencv-python
+opencv-contrib-python
+pycryptodome
+tinyaes
