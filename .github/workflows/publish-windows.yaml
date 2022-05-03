@@ -38,6 +38,7 @@ jobs:
         with:
           name: release
           path: QrScan.zip
+          retention-days: 1
 
   upload:
     name: Upload Windows Release
@@ -64,5 +65,3 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: QrScan_windows_${{steps.prepare_release.outputs.tag_name}}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

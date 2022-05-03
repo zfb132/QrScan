@@ -41,6 +41,7 @@ jobs:
         with:
           name: release
           path: QrScan.zip
+          retention-days: 1
 
 
   upload:
@@ -68,5 +69,3 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: QrScan_linux_${{steps.prepare_release.outputs.tag_name}}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
