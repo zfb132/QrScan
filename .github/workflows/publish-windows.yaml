@@ -1,4 +1,4 @@
-name: Configure ubuntu environment and publish
+name: Configure windows environment and publish
 
 on:
   push:

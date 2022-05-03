@@ -297,7 +297,7 @@ class QrDetectDialog(QDialog):
         mainLayout.setRowStretch(1, 2)
         self.setLayout(mainLayout)
 
-        self.setWindowTitle("图片二维码检测")
+        self.setWindowTitle("图片二维码检测 github.com/zfb132/QrScan")
         self.changeStyle('WindowsVista')
 
     
@@ -333,7 +333,7 @@ class QrDetectDialog(QDialog):
             QMessageBox.warning(self, '警告', f'不存在路径：{img_path}', QMessageBox.Yes)
             return
         # 设置默认日志
-        self.logger.widget.setPlainText("作者：zfb\nhttps://github.com/zfb132")
+        self.logger.widget.setPlainText("作者：zfb\nhttps://github.com/zfb132/QrScan")
         # 创建线程
         self._loadThread=QThread(parent=self)
         # vars = [1, 2, 3, 4, 5, 6]*6
@@ -411,7 +411,7 @@ class QrDetectDialog(QDialog):
         layout = QHBoxLayout()
         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         widget.setMaximumBlockCount(10000)
-        widget.setPlainText("作者：zfb\nhttps://github.com/zfb132")
+        widget.setPlainText("作者：zfb\nhttps://github.com/zfb132/QrScan")
         layout.addWidget(widget)
         #layout.addStretch(0)
         self.rightGroupBox.setLayout(layout)
