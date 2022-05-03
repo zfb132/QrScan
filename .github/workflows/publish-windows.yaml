@@ -1,4 +1,4 @@
-name: Configure windows environment and publish
+name: Windows
 
 on:
   push:
