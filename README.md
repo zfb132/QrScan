@@ -2,14 +2,8 @@
 二维码图片批量检测软件  
 支持常见的图片文件：`jpg`、`jpeg`、`png`、`bmp`、`tif`、`tiff`、`pbm`、`pgm`、`ppm`、`ras`等（识别二维码根据的是文件内容，即使扩展名为其他的，只要文件内容是图片编码都可识别）  
 
-启动软件界面  
-<img src="docs/startup.png" alt="启动软件界面" align=center />  
-  
-软件运行过程  
-<img src="docs/progress.png" alt="软件运行过程" align=center />  
-
-软件运行结束  
-<img src="docs/result.png" alt="软件运行结束" align=center />  
+软件截图  
+<img src="docs/result.png" alt="软件截图" align=center />  
 
 ## 1. 功能
 * 完全离线的软件，升级和更新在GitHub查看

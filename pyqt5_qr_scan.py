@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# author: 'zfb'
+# time: 2022-02-20 11:18
+
 from PyQt5.QtCore import Qt, QObject, QThread, pyqtSignal
 from PyQt5.QtWidgets import (QApplication, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QSizePolicy, QStyleFactory, QVBoxLayout, 
