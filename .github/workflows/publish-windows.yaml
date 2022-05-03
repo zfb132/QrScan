@@ -32,6 +32,12 @@ jobs:
         run: |
           ./publish.bat
 
+      - name: Upload release file
+        if: contains(github.ref, 'tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: release
+          path: QrScan.zip
 
   upload:
     name: Upload Windows Release
@@ -42,6 +48,10 @@ jobs:
     # git push origin --tags
     if: contains(github.ref, 'tags/')
     steps:
+      - name: Download release file
+        uses: actions/download-artifact@v3
+        with:
+          name: release
       - name: Prepare Release
         id: prepare_release
         run: |
