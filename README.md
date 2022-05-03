@@ -24,7 +24,6 @@
 ## 2. 下载软件
 ### 2.1. 使用已经编译成功的发布版软件
 下载地址：[release](https://github.com/zfb132/QrScan/releases)  
-由于使用`github actions`机器和`pyinstaller`软件打包，所以有一定概率被反病毒软件误报为`Trojan`（特洛伊木马），目前还没有找到有效的方法解决（使用本地机器进行打包可能不会报毒）
 
 ### 2.2. 从代码编译运行打包软件
 根据本机系统平台的不同，选择不同的文件后缀名： `Windows`平台选择`.bat`，`Linux`平台选择`.sh`  
