@@ -11,7 +11,7 @@
 软件运行结束  
 <img src="docs/result.png" alt="软件运行结束" align=center />  
 
-## 功能
+## 1. 功能
 * 完全离线的软件，升级和更新在GitHub查看
 * 能够批量排查图片是否包含二维码
 * 支持文件夹导入排查范围，自动遍历所有子文件夹
@@ -21,7 +21,19 @@
 * 支持实时日志显示与进度展示
 * 支持多进程极速检测
 
-## 免责声明
+## 2. 下载软件
+### 2.1. 使用已经编译成功的发布版软件
+下载地址：[release](https://github.com/zfb132/QrScan/releases)  
+由于使用`github actions`机器和`pyinstaller`软件打包，所以有一定概率被反病毒软件误报为`Trojan`（特洛伊木马），目前还没有找到有效的方法解决（使用本地机器进行打包可能不会报毒）
+
+### 2.2. 从代码编译运行打包软件
+根据本机系统平台的不同，选择不同的文件后缀名： `Windows`平台选择`.bat`，`Linux`平台选择`.sh`  
+* 把`scripts/config_env`和`scripts/publish`移动到当前目录
+* 执行`config_env`
+* 在`Windows`系统此时可以通过命令`.\venv\Scripts\python.exe pyqt5_qr_scan.py`运行本软件；在`Linux`系统此时可以通过命令`venv/bin/python3 pyqt5_qr_scan.py`运行本软件
+* 如要打包软件（剥离python环境），则执行`publish`，最终会在当前目录得到一个`QrScan.zip`压缩包
+
+## 3. 免责声明
 一切下载及使用本软件时均被视为已经仔细阅读并完全同意以下条款：  
 * 软件仅供个人学习与交流使用，严禁用于非法用途，转载需申请作者授权
 * 严禁未经书面许可用于商业用途

@@ -30,7 +30,7 @@ REM compile images
 %PRJ_PATH%\%PYTHON_NAME%\Scripts\pyrcc5.exe resources.qrc -o resources.py
 
 echo Packing Analysis.py
-%PYINSTALLER_FILE% --paths=%PYQT_PATH%  --specpath=%SPEC_PATH% --workpath=%WORK_PATH% --distpath=%DIST_PATH% --key 8rdf-#875FGSDyrd7t --version-file %PRJ_PATH%\file_version_info.txt --icon=%ICON_FILE% -D -w %PRJ_PATH%\%PY_NAME%.py -y
+%PYINSTALLER_FILE% --paths=%PYQT_PATH%  --specpath=%SPEC_PATH% --workpath=%WORK_PATH% --distpath=%DIST_PATH% --key 8rdf-#875FGSDyrd7t --version-file %PRJ_PATH%\file_version_info.txt --icon=%ICON_FILE% -D -w %PRJ_PATH%\%PY_NAME%.py -y --clean
 
 echo Creating %FINAL_PATH%
 rename "%DIST_PATH%\%PY_NAME%" "%FINAL_PATH%"
