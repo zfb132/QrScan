@@ -71,20 +71,20 @@ def scan(root, name, cut_path, operation):
     npfile = fromfile(img_name, dtype=uint8)
     if npfile.size == 0:
         logging.error(f"{img_name} 是空文件！")
-        return [4, op_status]
+        return [4, op_status, qrcode]
     img = imdecode(npfile, IMREAD_UNCHANGED)
     if img is None:
         logging.warning(f"{img_name} 不是一个图片！")
-        return [4, op_status]
+        return [4, op_status, qrcode]
     # if img.empty():
     if img.size == 0 :
         logging.error(f"{img_name} 不是一个合法图片！")
-        return [3, None]
+        return [3, op_status, qrcode]
     try:
         res, points = detector.detectAndDecode(img)
     except Exception as e:
         print(repr(e))
-        return [None, None]
+        return [None, op_status, qrcode]
     if res == None or len(res) < 1:
         logging.info(f"{img_name} 不包含二维码")
         img_status = 2
