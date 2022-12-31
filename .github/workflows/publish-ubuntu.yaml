@@ -12,8 +12,8 @@ jobs:
     name: build and run
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
           architecture: 'x64'
@@ -57,15 +57,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: release
-      - name: Prepare Release
-        id: prepare_release
-        run: |
-          TAG_NAME=`echo $GITHUB_REF | cut -d / -f3`
-          echo ::set-output name=tag_name::$TAG_NAME
       - name: Create Ubuntu Release
         run: |
-          mv QrScan.zip QrScan_linux_${{steps.prepare_release.outputs.tag_name}}.zip
+          mv QrScan.zip QrScan_linux_${{ github.ref_name }}.zip
       - name: Upload Ubuntu Release
         uses: softprops/action-gh-release@v1
         with:
-          files: QrScan_linux_${{steps.prepare_release.outputs.tag_name}}.zip
+          files: QrScan_linux_${{ github.ref_name }}.zip
