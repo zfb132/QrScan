@@ -133,22 +133,24 @@ class QrDetectDialog(QDialog):
         if not c1:
             QMessageBox.warning(self, '警告', f'请先设置图片所在文件夹！', QMessageBox.Yes)
             return
-        c2 = self.cutPathTextBox.text()
-        if not c2:
-            msg = "请先设置保存二维码图片的文件夹！"
-            if operation == 'decode':
-                msg = "请先设置保存二维码识别结果的文件夹！"
-            QMessageBox.warning(self, '警告', f'{msg}', QMessageBox.Yes)
-            return
         # 保证路径都是标准格式
         img_path = normpath(c1)
-        cut_path = normpath(c2)
         if not exists(img_path):
             QMessageBox.warning(self, '警告', f'不存在路径：{img_path}', QMessageBox.Yes)
             return
-        if not exists(cut_path) and operation != 'delete':
-            QMessageBox.warning(self, '警告', f'不存在路径：{img_path}', QMessageBox.Yes)
-            return
+        cut_path = ""
+        if operation != 'delete':
+            c2 = self.cutPathTextBox.text()
+            if not c2:
+                msg = "请先设置保存二维码图片的文件夹！"
+                if operation == 'decode':
+                    msg = "请先设置保存二维码识别结果的文件夹！"
+                QMessageBox.warning(self, '警告', f'{msg}', QMessageBox.Yes)
+                return
+            cut_path = normpath(c2)
+            if not exists(cut_path):
+                QMessageBox.warning(self, '警告', f'不存在路径：{img_path}', QMessageBox.Yes)
+                return
         # 设置默认日志
         self.logger.widget.setPlainText("作者：zfb\nhttps://github.com/zfb132/QrScan")
         # 创建线程
