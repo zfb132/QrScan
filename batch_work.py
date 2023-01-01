@@ -6,7 +6,7 @@
 import logging
 
 from multiprocessing import cpu_count, Pool
-from os.path import join
+from os.path import join, dirname, basename
 from os import walk
 from PyQt5.QtCore import QObject, pyqtSignal
 
@@ -26,7 +26,8 @@ class BatchWork(QObject):
         通过func函数接收具体用于任务处理的函数
         '''
         self.work = func
-        self.var = myvar
+        self.var = myvar[:3]
+        self.log_file = myvar[3]
         super(BatchWork, self).__init__()
     
     def chunks(self, l, n):
@@ -84,8 +85,12 @@ class BatchWork(QObject):
         else:
             logging.error(f"{name}程序出现bug！")
 
-    def save_qrcode(self, path, qrcode):
-        name = join(path, "qrcode.csv")
+    def save_qrcode(self, path, qrcode, is_log=False):
+        if is_log:
+            pure_log_name = basename(self.log_file.name).split('.')[:-1]
+            name = join(path, f"{'.'.join(pure_log_name)}.csv")
+        else:
+            name = join(path, "qrcode.csv")
         flag = False
         with open(name, "a", encoding="utf8") as f:
             for single_res in qrcode:
@@ -153,7 +158,7 @@ class BatchWork(QObject):
             # 格式化输出结果
             for t in range(len(m)):
                 name = join(final_pathes[i][t][0], final_pathes[i][t][1])
-                img_status, op_status, qrcode_thread = m[t]
+                img_status, op_status, qrcode_thread, note = m[t]
                 if img_status == 1:
                     qr_img_num += 1
                 # 剪切成功、删除成功、添加时间戳后剪切成功
@@ -162,13 +167,23 @@ class BatchWork(QObject):
                     qrcode.append(qrcode_thread)
                 # 显示每个批次的日志
                 self.show_info(img_status, op_status, name)
+                # 写入日志文件
+                if self.log_file:
+                    self.log_file.write(f"{note}\n")
+            if self.log_file:
+                self.log_file.flush()
             # 更新进度条（进度条的上限初始化为100）
             if operation == "decode":
                 self.save_qrcode(cut_path, qrcode)
+            else:
+                if self.log_file:
+                    self.save_qrcode(join(dirname(__file__), "log"), qrcode, self.log_file)
             self.notifyProgress.emit((i+1)*100//num_procs)
             # logging.info(f"进程{i}结束")
         logging.info(f"扫描任务结束：")
         logging.info(f"共计检测到{qr_img_num}个包含二维码的图片，其中{op_success_num}个文件执行操作成功")
+        if self.log_file:
+            self.log_file.close()
         # 使用信号槽机制，启用按钮，因为任务已经处理完成
         # 用户可以再次提交任务或创建新任务
         self.notifyStatus.emit(False)

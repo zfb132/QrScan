@@ -13,6 +13,8 @@ from PyQt5.QtWidgets import (QApplication, QPlainTextEdit, QDialog, QGridLayout,
 
 from custom_formatter import CustomFormatter
 from batch_work import BatchWork
+from os import makedirs, path
+from datetime import datetime
 
 class QPlainTextEditLogger(QObject, logging.Handler):
     '''自定义Qt控件，继承自QObject，初始化时创建QPlainTextEdit控件\n
@@ -75,6 +77,7 @@ class QrDetectDialog(QDialog):
         self.logger.new_record.connect(self.logger.widget.appendHtml)
         self._loadThread = None
         self.run_func = None
+        self.log_file = None
 
         # 界面基本元素创建
         self.createBottomLeftGroupBox()
@@ -119,6 +122,15 @@ class QrDetectDialog(QDialog):
         directory = QFileDialog.getExistingDirectory(self, "选取保存结果的文件夹")
         self.cutPathTextBox.setText(directory)
 
+    def set_log_file(self):
+        log_name = path.join(path.dirname(__file__), "log", f"{datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
+        try:
+            self.log_file = open(log_name, "w", encoding="utf-8")
+            logging.info(f"日志文件{log_name}创建成功")
+        except Exception as e:
+            logging.warning(f"日志文件{log_name}创建失败")
+            logging.warning(repr(e))
+
     def batch_work(self):
         # 运行按钮的响应函数
         # 获取操作类型，cut还是delete
@@ -155,8 +167,9 @@ class QrDetectDialog(QDialog):
         self.logger.widget.setPlainText("作者：zfb\nhttps://github.com/zfb132/QrScan")
         # 创建线程
         self._loadThread=QThread(parent=self)
+        self.set_log_file()
         # vars = [1, 2, 3, 4, 5, 6]*6
-        vars = [img_path, cut_path, operation]
+        vars = [img_path, cut_path, operation, self.log_file]
         self.loadThread=BatchWork(vars, self.run_func)
         # 为BatchWork类的两个信号绑定槽函数
         self.loadThread.notifyProgress.connect(self.updateProgressBar)
