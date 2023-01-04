@@ -13,6 +13,7 @@ import os
 import logging
 
 from custom_qwidget import QrDetectDialog, scan_process
+from sql_helper import create_files_table, create_status_table
 
 # 用于把图片资源嵌入到Qt程序里面
 # 发布exe时就不需要附该文件了
@@ -35,6 +36,8 @@ if __name__ == '__main__':
     # 如果用pyinstaller打包含有多进程的代码，这一行必须要
     # 且在最开始执行
     freeze_support()
+    create_files_table()
+    create_status_table()
     app = QApplication(sys.argv)
     detectDialog = QrDetectDialog()
     detectDialog.set_run_func(scan_process)
