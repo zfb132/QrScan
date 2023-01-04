@@ -95,16 +95,17 @@ def scan(root, name, cut_path, operation):
         return [4, op_status, qrcode, note]
     # if img.empty():
     if img.size == 0 :
-        note = f"非法图片: {img_name} 不是一个合法图片！"
+        note = f"空白图片: {img_name} 不是一个合法图片！"
         logging.error(note)
         return [3, op_status, qrcode, note]
     try:
         res, points = detector.detectAndDecode(img)
     except Exception as e:
         print(repr(e))
-        note = f"未知文件: {img_name} 识别失败！"
+        note = f"识别失败: {img_name} 识别失败！"
         return [None, op_status, qrcode, note]
-    if res == None or len(res) < 1:
+    # res=None  res=() res=("")
+    if res == None or len(res) < 1 or (len(res) == 1 and not res[0]):
         note = f"无二维码: {img_name}"
         logging.info(note)
         img_status = 2
