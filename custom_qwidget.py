@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QApplication, QPlainTextEdit, QDialog, QGridLayout,
     QFileDialog, QMessageBox, QLineEdit, QVBoxLayout, QHBoxLayout, QGroupBox)
 
 from custom_formatter import CustomFormatter
-from batch_work import BatchWork
+from batch_work import BatchWork, scan_process
 from os import makedirs, path
 from datetime import datetime
 
@@ -82,11 +82,15 @@ class QrDetectDialog(QDialog):
         # 界面基本元素创建
         self.createBottomLeftGroupBox()
         self.createTopLeftGroupBox()
+        self.createControlGroupBox()
         self.createRightGroupBox(self.logger.widget)
         self.createProgressBar()
 
         # 用于在pyqt5中的一个线程中，开启多进程
         self.runButton.clicked.connect(self.batch_work)
+        self.pauseButton.clicked.connect(self.pause_batch_work)
+        self.resumeButton.clicked.connect(self.resume_batch_work)
+        self.stopButton.clicked.connect(self.stop_batch_work)
         self.radioButton1.clicked.connect(self.disableCutPathStatus)
         self.radioButton2.clicked.connect(self.clickCutRadioButton)
         self.radioButton3.clicked.connect(self.clickDecodeRadioButton)
@@ -98,14 +102,16 @@ class QrDetectDialog(QDialog):
         # addWidget(QWidget, row: int, column: int, rowSpan: int, columnSpan: int)
         mainLayout.addWidget(self.topLeftGroupBox, 1, 0)
         mainLayout.addWidget(self.bottomLeftGroupBox, 0, 0)
-        mainLayout.addWidget(self.rightGroupBox, 0, 1, 2, 1)
-        mainLayout.addWidget(self.progressBar, 2, 0, 1, 2)
+        mainLayout.addWidget(self.controlGroupBox, 2, 0)
+        mainLayout.addWidget(self.rightGroupBox, 0, 1, 3, 1)
+        mainLayout.addWidget(self.progressBar, 3, 0, 1, 2)
         # 设置每一列的宽度比例，第0列的宽度为1；第1列的宽度为2
         mainLayout.setColumnStretch(0, 1)
         mainLayout.setColumnStretch(1, 2)
         # 设置每一行的宽度比例，第0行的宽度为1；第1行的宽度为2
         mainLayout.setRowStretch(0, 1)
-        mainLayout.setRowStretch(1, 2)
+        mainLayout.setRowStretch(1, 1)
+        mainLayout.setRowStretch(2, 2)
         self.setLayout(mainLayout)
 
         self.setWindowTitle("图片二维码检测识别 github.com/zfb132/QrScan")
@@ -141,7 +147,7 @@ class QrDetectDialog(QDialog):
             operation = 'cut'
         if self.radioButton3.isChecked():
             operation = 'decode'
-        c1 = self.imgPathTextBox.text()
+        c1 = self.imgPathTextBox.text().strip()
         if not c1:
             QMessageBox.warning(self, '警告', f'请先设置图片所在文件夹！', QMessageBox.Yes)
             return
@@ -152,7 +158,7 @@ class QrDetectDialog(QDialog):
             return
         cut_path = ""
         if operation != 'delete':
-            c2 = self.cutPathTextBox.text()
+            c2 = self.cutPathTextBox.text().strip()
             if not c2:
                 msg = "请先设置保存二维码图片的文件夹！"
                 if operation == 'decode':
@@ -164,7 +170,9 @@ class QrDetectDialog(QDialog):
                 QMessageBox.warning(self, '警告', f'不存在路径：{img_path}', QMessageBox.Yes)
                 return
         # 设置默认日志
-        self.logger.widget.setPlainText("作者：zfb\nhttps://github.com/zfb132/QrScan")
+        self.logger.widget.setPlainText("")
+        logging.critical("作者：zfb")
+        logging.critical("https://github.com/zfb132/QrScan")
         # 创建线程
         self._loadThread=QThread(parent=self)
         self.set_log_file()
@@ -179,6 +187,31 @@ class QrDetectDialog(QDialog):
         self._loadThread.started.connect(self.loadThread.run)
         self._loadThread.start()
 
+    def pause_batch_work(self):
+        if self.loadThread:
+            self.loadThread.event.clear()
+            logging.critical("暂停运行！")
+        self.resumeButton.setDisabled(False)
+        self.pauseButton.setDisabled(True)
+
+    def resume_batch_work(self):
+        if self.loadThread:
+            self.loadThread.event.set()
+            logging.critical("继续运行！")
+        self.resumeButton.setDisabled(True)
+        self.pauseButton.setDisabled(False)
+
+    def stop_batch_work(self):
+        if self.loadThread:
+            self.loadThread.pool.terminate()
+            self.loadThread.pool.join()
+            logging.critical("手动停止运行！")
+        self.updateButtonStatus(False)
+        # if self._loadThread:
+        #     self._loadThread.quit()
+        #     self._loadThread.wait()
+        #     self.imgPathTextBox.setText("AA")
+
     def changeStyle(self, styleName):
         QApplication.setStyle(QStyleFactory.create(styleName))
         self.changePalette()
@@ -191,6 +224,9 @@ class QrDetectDialog(QDialog):
     
     def updateButtonStatus(self, status):
         self.runButton.setDisabled(status)
+        self.pauseButton.setDisabled(not status)
+        self.resumeButton.setDisabled(True)
+        self.stopButton.setDisabled(not status)
     
     def disableCutPathStatus(self):
         self.cutPathButton.setDisabled(True)
@@ -233,18 +269,33 @@ class QrDetectDialog(QDialog):
         self.cutPathButton = QPushButton("选择剪切图片文件夹")
         self.cutPathButton.setDefault(True)
 
-        self.runButton = QPushButton("一键运行")
-        self.runButton.setDefault(True)
-
         layout = QVBoxLayout()
         layout.addWidget(self.imgPathButton)
         layout.addWidget(self.imgPathTextBox)
         layout.addWidget(self.cutPathButton)
         layout.addWidget(self.cutPathTextBox)
-        layout.addStretch(1)
-        layout.addWidget(self.runButton)
         
         self.topLeftGroupBox.setLayout(layout)
+
+    def createControlGroupBox(self):
+        self.controlGroupBox = QGroupBox("控制按钮")
+        layout = QGridLayout()
+        self.runButton = QPushButton("启动")
+        self.runButton.setDefault(True)
+        self.pauseButton = QPushButton("暂停")
+        self.pauseButton.setDefault(False)
+        self.pauseButton.setDisabled(True)
+        self.resumeButton = QPushButton("继续")
+        self.resumeButton.setDefault(False)
+        self.resumeButton.setDisabled(True)
+        self.stopButton = QPushButton("停止")
+        self.stopButton.setDefault(False)
+        self.stopButton.setDisabled(True)
+        layout.addWidget(self.runButton, 0, 0)
+        layout.addWidget(self.pauseButton, 0, 1)
+        layout.addWidget(self.resumeButton, 1, 0)
+        layout.addWidget(self.stopButton, 1, 1)
+        self.controlGroupBox.setLayout(layout)
 
     def createRightGroupBox(self, widget):
         self.rightGroupBox = QGroupBox("运行日志")

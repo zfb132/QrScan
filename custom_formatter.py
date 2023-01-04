@@ -12,6 +12,8 @@ class CustomFormatter(logging.Formatter):
     '''
     # 定义不同日志等级的格式和颜色
     FORMATS = {
+        # critical专门用于显示其他信息，所以不需要时间日期
+        logging.CRITICAL: ("[{asctime}]: {message}", "#000000"),
         logging.ERROR:   ("[{asctime}] {levelname:-<8}--- {message}", QColor("red")),
         logging.DEBUG:   ("[{asctime}] {levelname:-<8}--- {message}", "green"),
         logging.INFO:    ("[{asctime}] {levelname:-<8}--- {message}", "#0000FF"),
