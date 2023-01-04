@@ -16,6 +16,8 @@ from batch_work import BatchWork, scan_process
 from os import makedirs, path
 from datetime import datetime
 
+from sql_helper import get_status, clean_files_table, clean_status_table
+
 class QPlainTextEditLogger(QObject, logging.Handler):
     '''自定义Qt控件，继承自QObject，初始化时创建QPlainTextEdit控件\n
     用于实现QPlainTextEdit的日志输出功能
@@ -116,7 +118,41 @@ class QrDetectDialog(QDialog):
 
         self.setWindowTitle("图片二维码检测识别 github.com/zfb132/QrScan")
         self.changeStyle('WindowsVista')
-    
+        self.load_exists()
+
+    def load_exists(self):
+        self.is_first = True
+        res = get_status()
+        if res:
+            self.is_first = False
+            # 弹窗询问是否继续上次的操作
+            reply = QMessageBox.question(self, '提示', '检测到上次未完成的操作，是否继续？', QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            if reply == QMessageBox.No:
+                clean_files_table()
+                clean_status_table()
+                return
+            operation, img_path, cut_path = res
+            if operation == "delete":
+                self.radioButton1.setChecked(True)
+                self.radioButton2.setChecked(False)
+                self.radioButton3.setChecked(False)
+            elif operation == "cut":
+                self.radioButton2.setChecked(True)
+                self.radioButton1.setChecked(False)
+                self.radioButton3.setChecked(False)
+            elif operation == "decode":
+                self.radioButton3.setChecked(True)
+                self.radioButton1.setChecked(False)
+                self.radioButton2.setChecked(False)
+            if img_path:
+                self.imgPathTextBox.setText(img_path)
+            if cut_path:
+                self.cutPathTextBox.setText(cut_path)
+            logging.info(f"上次未完成的操作为：{operation}")
+            logging.info(f"图片路径为：{img_path}")
+            logging.info(f"保存路径为：{cut_path}")
+
+
     def set_run_func(self, func):
         self.run_func = func
     
@@ -177,7 +213,7 @@ class QrDetectDialog(QDialog):
         self._loadThread=QThread(parent=self)
         self.set_log_file()
         # vars = [1, 2, 3, 4, 5, 6]*6
-        vars = [img_path, cut_path, operation, self.log_file]
+        vars = [img_path, cut_path, operation, self.log_file, self.is_first]
         self.loadThread=BatchWork(vars, self.run_func)
         # 为BatchWork类的两个信号绑定槽函数
         self.loadThread.notifyProgress.connect(self.updateProgressBar)
@@ -206,7 +242,10 @@ class QrDetectDialog(QDialog):
             self.loadThread.pool.terminate()
             self.loadThread.pool.join()
             logging.critical("手动停止运行！")
-        self.updateButtonStatus(False)
+        self.runButton.setDisabled(False)
+        self.pauseButton.setDisabled(True)
+        self.resumeButton.setDisabled(True)
+        self.stopButton.setDisabled(True)
         # if self._loadThread:
         #     self._loadThread.quit()
         #     self._loadThread.wait()
@@ -227,6 +266,8 @@ class QrDetectDialog(QDialog):
         self.pauseButton.setDisabled(not status)
         self.resumeButton.setDisabled(True)
         self.stopButton.setDisabled(not status)
+        if not status:
+            QMessageBox.information(self, '提示', '成功完成扫描！', QMessageBox.Yes)
     
     def disableCutPathStatus(self):
         self.cutPathButton.setDisabled(True)

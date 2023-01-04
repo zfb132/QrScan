@@ -14,6 +14,7 @@ from os.path import join, dirname, basename, exists, splitext, normpath
 from os import walk, remove
 from PyQt5.QtCore import QObject, pyqtSignal
 
+from sql_helper import insert_file, insert_status, clean_files_table, clean_status_table, get_all_files
 
 def setup_event(event):
     global unpaused
@@ -31,10 +32,9 @@ except:
     print("初始化识别器失败！")
     exit(0)
 
-def scan(root, name, cut_path, operation):
+def scan(img_name, cut_path, operation):
     '''
-    @param root 图片文件的路径
-    @param name 图片文件的名称
+    @param img_name 图片文件的名称
     @param cut_path 准备存放包含二维码图片的路径
     @operation 对包含二维码的图片要进行的操作。
         'cut'表示剪切到cut_path文件夹，'delete'表示删除该图片，'decode'表示识别二维码
@@ -64,8 +64,7 @@ def scan(root, name, cut_path, operation):
     qrcode = None
     # 处理过程中的运行信息
     note = None
-    img_name = join(root, name)
-    full_name = normpath(img_name)
+    full_name = img_name
     # imread不支持中文路径
     # img = imread(img_name)
     npfile = fromfile(img_name, dtype=uint8)
@@ -95,11 +94,12 @@ def scan(root, name, cut_path, operation):
         logging.info(note)
         img_status = 2
         op_status = 7
+        return [img_status, op_status, [full_name, qrcode], note]
     else:
         logging.debug(f"{img_name} 检测到二维码")
         img_status = 1
         if operation == 'cut':
-            new_name = join(cut_path, name)
+            new_name = join(cut_path, basename(img_name))
             file_exist = False
             try:
                 if not exists(new_name):
@@ -153,7 +153,7 @@ def scan_process(pathes, cut_path, operation):
     results = []
     for path in pathes:
         unpaused.wait()
-        results.append(scan(path[0], path[1], cut_path, operation))
+        results.append(scan(path, cut_path, operation))
     return results
 
 class BatchWork(QObject):
@@ -174,6 +174,7 @@ class BatchWork(QObject):
         self.work = func
         self.var = myvar[:3]
         self.log_file = myvar[3]
+        self.is_first = myvar[4]
         super(BatchWork, self).__init__()
     
     def chunks(self, l, n):
@@ -247,6 +248,14 @@ class BatchWork(QObject):
             if flag:
                 logging.debug(f"识别二维码结果保存到文件{name}成功！")
 
+    def filter_names(self, pathes):
+        '''
+        从数据库中读取已经识别过的文件，将其从pathes中删除
+        '''
+        db_normpath_names = [x[0] for x in get_all_files()]
+        # item in new_lists but not in db_normpath_names
+        return list(set(pathes) - set(db_normpath_names))
+
     def run(self):
         # 使用信号槽机制，禁用按钮，因为此时已经开始处理
         # 防止用户再次提交任务
@@ -262,7 +271,10 @@ class BatchWork(QObject):
             # for dir_name in dirs:
             #    rename_func(root, dir_name)
             for file_name in files:
-                pathes.append([root, file_name])
+                pathes.append(normpath(join(root, file_name)))
+        if not self.is_first:
+            logging.info("检测到上次运行未结束，将过滤已经识别过的文件")
+            pathes = self.filter_names(pathes)
         logging.info(f"载入所有{len(pathes)}个文件成功！")
         # 根据CPU核心数量开启多进程，充分利用资源
         pro_cnt = cpu_count()
@@ -273,7 +285,7 @@ class BatchWork(QObject):
         # if group_size < 1:
         #     group_size = 1
         # 还是默认8个吧，否则一个批次的任务执行时间太久，日志和进度条会好久才动
-        group_size = 8
+        group_size = 4
         # 把m*2*n的列表分割成新列表，新列表的前面t-1元素都是group_size*2*n
         # 最后一个元素[len(pathes)-(t-1)*group_size]X2Xn
         final_pathes = self.resize_list(pathes, group_size)
@@ -281,6 +293,7 @@ class BatchWork(QObject):
         num_procs = len(final_pathes)
         # 用于存放多进程返回结果的列表
         results = list(range(num_procs))
+        insert_status(operation, path, cut_path, 0)
         # 创建进程池
         self.event = Event()
         self.pool = Pool(processes=pro_cnt, initializer=setup_event, initargs=(self.event,))
@@ -306,8 +319,9 @@ class BatchWork(QObject):
             m = results[i].get()
             # 格式化输出结果
             for t in range(len(m)):
-                name = join(final_pathes[i][t][0], final_pathes[i][t][1])
                 img_status, op_status, qrcode_thread, note = m[t]
+                name = qrcode_thread[0]
+                insert_file(name)
                 if img_status == 1:
                     qr_img_num += 1
                 # 剪切成功、删除成功、添加时间戳后剪切成功
@@ -331,6 +345,10 @@ class BatchWork(QObject):
             # logging.info(f"进程{i}结束")
         logging.info(f"扫描任务结束：")
         logging.info(f"共计检测到{qr_img_num}个包含二维码的图片，其中{op_success_num}个文件执行操作成功")
+        # 清空files.db
+        clean_files_table()
+        # 保存操作记录
+        clean_status_table()
         if self.log_file:
             self.log_file.close()
         # 使用信号槽机制，启用按钮，因为任务已经处理完成
