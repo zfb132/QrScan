@@ -1,6 +1,6 @@
 pyqt5
 pyinstaller
-opencv-python
-opencv-contrib-python
+opencv-python==4.6.0.66
+opencv-contrib-python==4.6.0.66
 pycryptodome
 tinyaes
