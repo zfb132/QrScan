@@ -28,6 +28,29 @@ jobs:
         run: |
           ./config_env.bat
 
+      - name: Set version
+        if: contains(github.ref, 'tags/')
+        shell: bash
+        run: |
+          export VERSION="${{ github.ref_name }}"
+          export VERSION="${VERSION#v}"
+          export MAJOR="${VERSION%%.*}"
+          export MINOR="${VERSION#*.}"
+          export PATCH="${MINOR#*.}"
+          export MINOR="${MINOR%%.*}"
+          export HASH="${GITHUB_SHA::8}"
+          export DATETIME=$(date +%Y%m%d%H%M)
+
+          echo "VERSION=${MAJOR}.${MINOR}.${PATCH}"
+          echo "ID=${HASH}_${DATETIME}"
+          
+          sed -i "s/V_MAJOR/${MAJOR}/g" file_version_info.txt
+          sed -i "s/V_MINOR/${MINOR}/g" file_version_info.txt
+          sed -i "s/V_PATCH/${PATCH}/g" file_version_info.txt
+          sed -i "s/COMMIT_HASH/${HASH}/g" file_version_info.txt
+          sed -i "s/YYYYMMDDHHMM/${DATETIME}/g" file_version_info.txt
+          sed -i "s#setWindowTitle.*#setWindowTitle(\"图片二维码检测识别 ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}\")#g" custom_qwidget.py
+
       - name: Publish Release
         run: |
           ./publish.bat
