@@ -32,9 +32,9 @@ VSVersionInfo(
         [StringStruct('CompanyName', 'WHU ZFB'),
         StringStruct('FileDescription', '二维码检测程序'),
         StringStruct('FileVersion', 'V_MAJOR.V_MINOR.V_PATCH.0 (COMMIT_HASH)'),
-        StringStruct('InternalName', 'QrScan_COMMIT_HASH_YYYYMMDDHHMM'),
+        StringStruct('InternalName', 'QrScan.Exe'),
         StringStruct('LegalCopyright', '© https://github.com/zfb132. All rights reserved.'),
-        StringStruct('OriginalFilename', 'QrScan.Exe'),
+        StringStruct('OriginalFilename', 'QrScan_COMMIT_HASH_YYYYMMDDHHMM'),
         StringStruct('ProductName', '二维码检测程序'),
         StringStruct('ProductVersion', 'V_MAJOR.V_MINOR.V_PATCH.0')])
       ]), 
