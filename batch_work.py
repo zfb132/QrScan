@@ -239,7 +239,7 @@ class BatchWork(QObject):
         else:
             name = join(path, "qrcode.csv")
         flag = False
-        with open(name, "a", encoding="utf8") as f:
+        with open(name, "a", encoding="utf-8-sig", errors="replace") as f:
             for single_res in qrcode:
                 if single_res is None:
                     continue
