@@ -5,8 +5,8 @@
 
 import logging
 from datetime import datetime
-from cv2 import imdecode, IMREAD_UNCHANGED, wechat_qrcode_WeChatQRCode
-from numpy import fromfile, uint8
+from cv2 import imdecode, cvtColor, IMREAD_UNCHANGED, COLOR_GRAY2RGB, COLOR_RGBA2RGB, wechat_qrcode_WeChatQRCode
+from numpy import fromfile, uint8, uint16
 from shutil import move
 
 from multiprocessing import Event, cpu_count, Pool
@@ -31,6 +31,25 @@ try:
 except:
     print("初始化识别器失败！")
     exit(0)
+
+def convert_to_8bit_rgb(img):
+    """
+    将图像转换为8位RGB格式。
+    如果图像已经是8位RGB，则不进行任何操作。
+    """
+    # 如果图像是灰度图，转换为RGB
+    if len(img.shape) == 2:
+        img = cvtColor(img, COLOR_GRAY2RGB)
+
+    # 如果图像是16位深度，转换为8位
+    elif img.dtype == uint16:
+        img = (img / 256).astype(uint8)
+
+    # 如果图像是RGBA，转换为RGB
+    elif img.shape[2] == 4:
+        img = cvtColor(img, COLOR_RGBA2RGB)
+
+    return img
 
 def scan(img_name, cut_path, operation):
     '''
@@ -83,6 +102,7 @@ def scan(img_name, cut_path, operation):
         logging.error(note)
         return [3, op_status, [full_name, qrcode], note]
     try:
+        img = convert_to_8bit_rgb(img)
         res, points = detector.detectAndDecode(img)
     except Exception as e:
         print(repr(e))
