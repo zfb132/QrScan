@@ -17,6 +17,7 @@ from os import makedirs, path
 from datetime import datetime
 
 from sql_helper import get_status, clean_files_table, clean_status_table
+from utils import get_base_path
 
 class QPlainTextEditLogger(QObject, logging.Handler):
     '''自定义Qt控件，继承自QObject，初始化时创建QPlainTextEdit控件\n
@@ -165,7 +166,7 @@ class QrDetectDialog(QDialog):
         self.cutPathTextBox.setText(directory)
 
     def set_log_file(self):
-        log_name = path.join(path.dirname(__file__), "log", f"{datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
+        log_name = path.join(get_base_path(), "log", f"{datetime.now().strftime('%Y%m%d%H%M%S')}.txt")
         try:
             self.log_file = open(log_name, "w", encoding="utf-8")
             logging.info(f"日志文件{log_name}创建成功")

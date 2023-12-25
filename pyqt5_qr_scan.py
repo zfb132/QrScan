@@ -14,6 +14,7 @@ import logging
 
 from custom_qwidget import QrDetectDialog, scan_process
 from sql_helper import create_files_table, create_status_table
+from utils import get_base_path
 
 # 用于把图片资源嵌入到Qt程序里面
 # 发布exe时就不需要附该文件了
@@ -22,7 +23,7 @@ import resources
 def log_init():
     try:
         # 当前程序的路径
-        log_dir = os.path.join(os.path.dirname(__file__), "log")
+        log_dir = os.path.join(get_base_path(), "log")
         if not os.path.exists(log_dir):
             os.makedirs(log_dir)
             logging.info(f"日志文件夹{log_dir}创建成功")

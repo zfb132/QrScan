@@ -8,6 +8,7 @@ from datetime import datetime
 from cv2 import imdecode, cvtColor, IMREAD_UNCHANGED, COLOR_GRAY2RGB, COLOR_RGBA2RGB, wechat_qrcode_WeChatQRCode
 from numpy import fromfile, uint8, uint16
 from shutil import move
+from sys import exit
 
 from multiprocessing import Event, cpu_count, Pool
 from os.path import join, dirname, basename, exists, splitext, normpath
@@ -15,6 +16,7 @@ from os import walk, remove
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from sql_helper import insert_file, insert_status, clean_files_table, clean_status_table, get_all_files
+from utils import get_base_path
 
 def setup_event(event):
     global unpaused
@@ -23,12 +25,14 @@ def setup_event(event):
 try:
     # 使用opencv的wechat_qrcode模块创建二维码识别器
     # https://github.com/WeChatCV/opencv_3rdparty/tree/wechat_qrcode
+    model_base_path = join(get_base_path(), "models")
     detector = wechat_qrcode_WeChatQRCode(
-        "models/detect.prototxt", "models/detect.caffemodel", 
-        "models/sr.prototxt", "models/sr.caffemodel"
+        join(model_base_path, "detect.prototxt"), join(model_base_path, "detect.caffemodel"), 
+        join(model_base_path, "sr.prototxt"), join(model_base_path, "sr.caffemodel")
     )
     # print("创建识别器成功")
-except:
+except Exception as e:
+    print(repr(e))
     print("初始化识别器失败！")
     exit(0)
 
@@ -360,7 +364,7 @@ class BatchWork(QObject):
                 self.save_qrcode(cut_path, qrcode)
             else:
                 if self.log_file:
-                    self.save_qrcode(join(dirname(__file__), "log"), qrcode, self.log_file)
+                    self.save_qrcode(join(get_base_path(), "log"), qrcode, self.log_file)
             self.notifyProgress.emit((i+1)*100//num_procs)
             # logging.info(f"进程{i}结束")
         logging.info(f"扫描任务结束：")
