@@ -22,7 +22,7 @@ rm -f resources.py
 
 ${PRJ_PATH}/${PYTHON_NAME}/bin/pyrcc5 resources.qrc -o resources.py
 
-${PYINSTALLER_FILE} --paths=${PYQT_PATH}  --specpath=${SPEC_PATH} --workpath=${WORK_PATH} --distpath=${DIST_PATH} --key "audYRD65jFDT87" --version-file ${PRJ_PATH}/file_version_info.txt --icon=${ICON_FILE} -D -w --clean ${PRJ_PATH}/${PY_NAME}.py -y
+${PYINSTALLER_FILE} --paths=${PYQT_PATH}  --specpath=${SPEC_PATH} --workpath=${WORK_PATH} --distpath=${DIST_PATH} --version-file ${PRJ_PATH}/file_version_info.txt --icon=${ICON_FILE} -D -w --clean ${PRJ_PATH}/${PY_NAME}.py -y
 
 mv ${DIST_PATH}/${PY_NAME} ${DIST_PATH}/${FINAL_PATH}
 
